@@ -9,7 +9,7 @@ import router from "./routers/router";
 const app = express();
 
 app.use(compression());
-app.use(cors());
+app.use(cors({ origin: ["http://localhost:3000"], credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
@@ -42,7 +42,7 @@ const handleConnection = (socket: any) => {
     console.log("브라우저에서 연결을 해제하였습니다.");
   });
 
-  socket.on("message", (message:any) => {
+  socket.on("message", (message: any) => {
     interface ISocketMessage {
       type: "nickname" | "message";
       payload: string;
