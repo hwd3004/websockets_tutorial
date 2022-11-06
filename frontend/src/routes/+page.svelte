@@ -75,11 +75,9 @@
   </div>
   <div>
     <ul>
-      {#if messages.length > 1}
-        {#each messages as data}
-          <li>{data}</li>
-        {/each}
-      {/if}
+      {#each messages as data}
+        <li>{data}</li>
+      {/each}
     </ul>
   </div>
 </main>
