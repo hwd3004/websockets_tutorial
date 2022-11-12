@@ -1,8 +1,12 @@
 <script context="module">
   import axios from "axios";
 
+  const local = false;
+  let baseURL = "";
+  local ? (baseURL = "http://localhost:4000/api") : (baseURL = "/api");
+
   export const axiosInstance = axios.create({
-    baseURL: "http://localhost:4000",
+    baseURL,
   });
 
   axiosInstance.interceptors.request.use(

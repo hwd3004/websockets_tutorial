@@ -9,12 +9,12 @@ import router from "./routers/router";
 const app = express();
 
 app.use(compression());
-app.use(cors({ origin: ["http://localhost:3000"], credentials: true }));
+app.use(cors({ origin: ["http://localhost:3000", "http://localhost:5173"], credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-app.use("/", router);
+app.use("/api", router);
 
 const port = 4000;
 
@@ -24,7 +24,7 @@ const handleListening = () => {
 
 // http 서버 위에 ws서버를 올림. 동시에 작동함.
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server, path: `/ws` });
 
 interface IWebSocket extends WebSocket.WebSocket {
   nickname: string;
@@ -32,8 +32,8 @@ interface IWebSocket extends WebSocket.WebSocket {
 
 const sockets: any[] = [];
 
-const handleConnection = (socket: any) => {
-  // console.log("handleConnection socket", socket);
+const handleConnection = (socket: IWebSocket) => {
+  console.log("handleConnection socket", socket);
 
   sockets.push(socket);
   socket.nickname = "ㅇㅇ";

@@ -12,19 +12,20 @@ const ws_1 = __importDefault(require("ws"));
 const router_1 = __importDefault(require("./routers/router"));
 const app = (0, express_1.default)();
 app.use((0, compression_1.default)());
-app.use((0, cors_1.default)({ origin: ["http://localhost:3000"], credentials: true }));
+app.use((0, cors_1.default)({ origin: ["http://localhost:3000", "http://localhost:5173"], credentials: true }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, morgan_1.default)("dev"));
-app.use("/", router_1.default);
+app.use("/api", router_1.default);
 const port = 4000;
 const handleListening = () => {
     console.log(`http://localhost:${port}`);
 };
 const server = http_1.default.createServer(app);
-const wss = new ws_1.default.Server({ server });
+const wss = new ws_1.default.Server({ server, path: `/ws` });
 const sockets = [];
 const handleConnection = (socket) => {
+    console.log("handleConnection socket", socket);
     sockets.push(socket);
     socket.nickname = "ㅇㅇ";
     socket.on("close", () => {

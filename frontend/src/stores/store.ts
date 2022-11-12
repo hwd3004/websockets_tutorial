@@ -3,11 +3,16 @@ import { browser } from "$app/environment";
 
 const messageStore = writable("");
 
+const local = false;
+let wsURL = "";
+
+local ? (wsURL = "ws://localhost:4000/ws") : (wsURL = "ws://172.30.10.45/socket");
+
 // https://stackoverflow.com/questions/69151604/how-to-access-websocket-in-svelte
 // 스벨트킷에서 웹소켓 연결
 let socket: WebSocket;
 if (browser) {
-  socket = new WebSocket("ws://localhost:4000");
+  socket = new WebSocket(wsURL);
 
   socket.addEventListener("open", (event) => {
     console.log("socket open", event);
