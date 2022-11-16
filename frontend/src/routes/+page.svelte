@@ -1,83 +1,37 @@
 <script lang="ts">
   import store from "../stores/store";
   import { onMount } from "svelte";
-  import { axiosInstance } from "./+layout.svelte";
 
-  let getInit = async () => {
-    const { data } = await axiosInstance.get("/");
-    console.log(data);
-    return data;
-  };
+  const { socket } = store;
 
-  let init = getInit();
+  const title = "WebSockets Tutorial";
 
-  //
-  //
-  //
+  let welcomeRef: HTMLDivElement;
+  let inputRef: HTMLInputElement;
+  let inputValue: "";
 
-  let message: string;
-  let nickname: string = "ㅇㅇ";
-  let messages: any[] = [];
-
-  onMount(() => {
-    store.subscribe((currentMessage) => {
-      console.log("currentMessage", currentMessage);
-      messages = [...messages, currentMessage];
+  const handleSubmit = (event: SubmitEvent) => {
+    socket.emit("enter_room", { playload: inputValue }, (message: string) => {
+      console.log("handleSubmit Done");
+      console.log(message);
     });
-  });
-
-  const onSendMessage = () => {
-    if (message.length > 0) {
-      // store.sendMessage(message);
-      store.sendMessage(JSON.stringify({ type: "message", payload: message }));
-      message = "";
-    }
+    inputValue = "";
   };
 
-  const onSetNickname = () => {
-    console.log("onSetNickname");
-    if (nickname.length > 0) {
-      store.sendMessage(JSON.stringify({ type: "nickname", payload: nickname }));
-    }
-  };
+  onMount(() => {});
 </script>
 
 <svelte:head>
-  <title>WebSockets Tutorial</title>
+  <title>{title}</title>
 </svelte:head>
 
-<header>WebSOckets Tutorial</header>
+<header>{title}</header>
 
 <main>
-  <h3>Welcome</h3>
-  <hr />
-  {#await init}
-    <p>...loading</p>
-  {:then data}
-    <p>{data.home}</p>
-  {/await}
-  <hr />
-  <div>
-    <div>
-      <input type="text" bind:value={nickname} />
-      <button on:click={onSetNickname}>set nickname</button>
-    </div>
-    <div>
-      <input
-        type="text"
-        bind:value={message}
-        on:keyup={(event) => {
-          event.key == "Enter" ? onSendMessage() : null;
-        }}
-      />
-      <button on:click={onSendMessage}>Send Message</button>
-    </div>
-  </div>
-  <div>
-    <ul>
-      {#each messages as data}
-        <li>{data}</li>
-      {/each}
-    </ul>
+  <div bind:this={welcomeRef} id="welcome">
+    <form on:submit|preventDefault={handleSubmit}>
+      <input bind:this={inputRef} bind:value={inputValue} type="text" placeholder="room name" required />
+      <button>Enter Room</button>
+    </form>
   </div>
 </main>
