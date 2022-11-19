@@ -30,11 +30,16 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-  socket.on("enter_room", (data: object, callbackFn: Function) => {
-    console.log(data);
-    setTimeout(() => {
-      callbackFn("message from the backend");
-    }, 3000);
+  socket.onAny((event) => {
+    console.log("Socket Event : ", event);
+  });
+
+  socket.on("enter_room", (roomName: string, callbackFn: Function) => {
+    console.log("socket.rooms : ", socket.rooms);
+    socket.join(roomName);
+    console.log("socket.rooms : ", socket.rooms);
+    console.log(roomName);
+    callbackFn();
   });
 });
 

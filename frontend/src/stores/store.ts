@@ -4,6 +4,8 @@ import { io } from "socket.io-client";
 
 export const local = false;
 
-const socket = io("http://localhost:4000");
+export const socket = io("http://localhost:4000");
 
-export default { local, socket };
+export const showRoom = writable(false);
+
+export const roomName = writable("asdasdasd");
