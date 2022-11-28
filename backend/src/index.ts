@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import compression from "compression";
+import { instrument } from "@socket.io/admin-ui";
 import router from "./routers/router";
 import { Server } from "socket.io";
 import { clog } from "./common";
@@ -26,9 +27,12 @@ const handleListening = () => {
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://admin.socket.io"],
+    credentials: true,
   },
 });
+
+instrument(io, { auth: false, namespaceName: "/admin" });
 
 const publicRooms = () => {
   const {
