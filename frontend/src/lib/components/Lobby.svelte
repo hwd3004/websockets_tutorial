@@ -6,13 +6,9 @@
 
   let inputValue = "";
 
-  const handleShowRoom = () => {
-    showRoom.update(() => true);
-  };
-
   const handleSubmit = (_event: SubmitEvent) => {
     if (inputValue.trim() != "") {
-      socket.emit("enter_room", inputValue, handleShowRoom);
+      socket.emit("enter_room", inputValue, showRoom.onShowRoom);
       roomName.update(() => inputValue);
       inputValue = "";
     }

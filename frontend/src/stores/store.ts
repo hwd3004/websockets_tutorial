@@ -6,6 +6,20 @@ export const local = false;
 
 export const socket = io("http://localhost:4000");
 
-export const showRoom = writable(false);
+const handleShowRoom = () => {
+  const { subscribe, set, update } = writable(false);
+  return {
+    subscribe,
+    set,
+    update,
+    onShowRoom: () => {
+      update(() => true);
+    },
+  };
+};
 
-export const roomName = writable("asdasdasd");
+export const showRoom = handleShowRoom();
+
+export const roomName = writable("");
+
+export const nickname = writable("");
