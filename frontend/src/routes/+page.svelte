@@ -3,7 +3,8 @@
   import Room from "@components/Room.svelte";
   import Nickname from "@components/Nickname.svelte";
   import { showRoom } from "@store";
-  import OpenRooms from "../lib/components/OpenRooms.svelte";
+  import OpenRooms from "@components/OpenRooms.svelte";
+  import Video from "@components/Video.svelte";
 
   const title = "WebSockets Tutorial";
 </script>
@@ -15,6 +16,7 @@
 <header>{title}</header>
 
 <main>
+  <Video />
   {#if $showRoom}
     <Room />
   {:else}
