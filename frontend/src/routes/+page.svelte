@@ -1,9 +1,4 @@
 <script lang="ts">
-  import Lobby from "@components/Lobby.svelte";
-  import Room from "@components/Room.svelte";
-  import Nickname from "@components/Nickname.svelte";
-  import { showRoom } from "@store";
-  import OpenRooms from "@components/OpenRooms.svelte";
   import Video from "@components/Video.svelte";
 
   const title = "WebSockets Tutorial";
@@ -17,11 +12,4 @@
 
 <main>
   <Video />
-  {#if $showRoom}
-    <Room />
-  {:else}
-    <Nickname />
-    <Lobby />
-    <OpenRooms />
-  {/if}
 </main>

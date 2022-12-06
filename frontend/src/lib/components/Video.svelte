@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { socket, roomName } from "@/src/stores/store";
   import { onMount } from "svelte";
 
   const MUTE = "MUTE";
@@ -10,9 +11,15 @@
   let muteButtonRef: HTMLButtonElement;
   let cameraButtonRef: HTMLButtonElement;
   let selectRef: HTMLSelectElement;
+
+  let welcomeInputRef: HTMLInputElement;
+
   let stream: MediaStream;
   let muted = false;
   let cameraOff = false;
+  let call = false;
+
+  let peerConnection: RTCPeerConnection;
 
   const handleMuteClick = () => {
     stream.getAudioTracks().forEach((track) => {
@@ -55,6 +62,10 @@
 
       // https://velog.io/@youngcheon/WebRTC-하울링-이슈-수정하기
       videoRef.volume = 0;
+
+      if (!deviceId) {
+        await getCameras();
+      }
     } catch (error) {
       console.log(error);
     }
@@ -84,23 +95,69 @@
     }
   };
 
+  const startMedia = async () => {
+    call = true;
+    await getMedia();
+    makeConnection();
+  };
+
+  const handleWelcomeSubmit = () => {
+    roomName.update(() => welcomeInputRef.value);
+    socket.emit("join_room", $roomName, startMedia);
+  };
+
+  // Peer A에서 실행
+  socket.on("welcome", async () => {
+    console.log("someone joined.");
+
+    const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
+
+    // Peer B로 offerf 전달
+    peerConnection.setLocalDescription(offer);
+
+    socket.emit("offer", offer, $roomName);
+  });
+
+  // Peer B에서 실행
+  socket.on("offer", (offer: RTCSessionDescriptionInit) => {
+    console.log("offer : ", offer);
+  });
+
+  const makeConnection = () => {
+    peerConnection = new RTCPeerConnection();
+    stream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, stream);
+    });
+  };
+
   onMount(() => {
-    getMedia();
-    getCameras();
+    // getMedia();
+    // getCameras();
   });
 </script>
 
 <div>
-  <!-- svelte-ignore a11y-media-has-caption -->
-  <video bind:this={videoRef} autoplay playsinline width="400" height="250" />
+  {#if !call}
+    <div id="welcome">
+      <form on:submit|preventDefault={handleWelcomeSubmit}>
+        <input bind:this={welcomeInputRef} type="text" required placeholder="room name" />
+        <button type="submit">Enter Room</button>
+      </form>
+    </div>
+  {:else}
+    <div id="stream">
+      <!-- svelte-ignore a11y-media-has-caption -->
+      <video bind:this={videoRef} autoplay playsinline width="400" height="250" />
 
-  <button bind:this={muteButtonRef} on:click={handleMuteClick}>
-    {!muted ? MUTE : UNMUTE}
-  </button>
+      <button bind:this={muteButtonRef} on:click={handleMuteClick}>
+        {!muted ? MUTE : UNMUTE}
+      </button>
 
-  <button bind:this={cameraButtonRef} on:click={handleCameraClick}
-    >{!cameraOff ? TURN_CAMERA_OFF : TURN_CAMERA_ON}
-  </button>
+      <button bind:this={cameraButtonRef} on:click={handleCameraClick}
+        >{!cameraOff ? TURN_CAMERA_OFF : TURN_CAMERA_ON}
+      </button>
 
-  <select bind:this={selectRef} />
+      <select bind:this={selectRef} />
+    </div>
+  {/if}
 </div>
