@@ -7,6 +7,7 @@ import { instrument } from "@socket.io/admin-ui";
 import router from "./routers/router";
 import { Server } from "socket.io";
 import { clog } from "./common";
+import { roomName } from "../../frontend/src/stores/store";
 
 const app = express();
 
@@ -33,14 +34,17 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-  socket.on("join_room", (roomName: string, doneFn: Function) => {
+  socket.on("join_room", (roomName: string) => {
     socket.join(roomName);
-    doneFn();
     socket.to(roomName).emit("welcome");
   });
 
   socket.on("offer", (offer: RTCSessionDescriptionInit, roomName: string) => {
     socket.to(roomName).emit("offer", offer);
+  });
+
+  socket.on("answer", (answer: RTCSessionDescriptionInit, roomName: string) => {
+    socket.to(roomName).emit("answer", answer);
   });
 });
 

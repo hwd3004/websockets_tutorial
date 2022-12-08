@@ -95,19 +95,24 @@
     }
   };
 
-  const startMedia = async () => {
+  const initCall = async () => {
     call = true;
     await getMedia();
     makeConnection();
   };
 
-  const handleWelcomeSubmit = () => {
+  const handleWelcomeSubmit = async () => {
     roomName.update(() => welcomeInputRef.value);
-    socket.emit("join_room", $roomName, startMedia);
+
+    // socket.emit("join_room", $roomName, initCall);
+
+    await initCall();
+    socket.emit("join_room", $roomName);
   };
 
   // Peer A에서 실행
   socket.on("welcome", async () => {
+    console.log("Peer A");
     console.log("someone joined.");
 
     const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
@@ -119,8 +124,31 @@
   });
 
   // Peer B에서 실행
-  socket.on("offer", (offer: RTCSessionDescriptionInit) => {
-    console.log("offer : ", offer);
+  socket.on("offer", async (offer: RTCSessionDescriptionInit) => {
+    console.log("Peer B가 받은 offer : ", offer);
+
+    /**
+     * Uncaught (in promise) TypeError: peerConnection is undefined
+     * offer가 도착한 순간, Peer B의 브라우저에서 peerConnection은 아직 존재하지 않는다.
+     * 함수명 setRemoteDescription임에 주의
+     */
+    peerConnection.setRemoteDescription(offer);
+
+    const answer = await peerConnection.createAnswer();
+
+    console.log("answer : ", answer);
+
+    // 함수명 setLocalDescription임에 주의
+    peerConnection.setLocalDescription(answer);
+    socket.emit("answer", answer, $roomName);
+  });
+
+  /**
+   * Peer A에서 offer를 Peer B로 보낸 후, Peer B에서 offer를 받아 answer를 Peer A가 받는다.
+   * 이 함수는 Peer A에서 실행
+  */
+  socket.on("answer", (answer: RTCSessionDescriptionInit) => {
+    peerConnection.setRemoteDescription(answer);
   });
 
   const makeConnection = () => {
