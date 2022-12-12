@@ -14,6 +14,8 @@
 
   let welcomeInputRef: HTMLInputElement;
 
+  let peerStreamVideoRef: HTMLVideoElement;
+
   let stream: MediaStream;
   let muted = false;
   let cameraOff = false;
@@ -146,17 +148,46 @@
   /**
    * Peer A에서 offer를 Peer B로 보낸 후, Peer B에서 offer를 받아 answer를 Peer A가 받는다.
    * 이 함수는 Peer A에서 실행
-  */
+   */
   socket.on("answer", (answer: RTCSessionDescriptionInit) => {
     peerConnection.setRemoteDescription(answer);
   });
 
   const makeConnection = () => {
     peerConnection = new RTCPeerConnection();
+
+    peerConnection.addEventListener("icecandidate", handleIce);
+
+    // addstream은 폐기됨. track을 사용.
+    peerConnection.addEventListener("track", handleTrack);
+
     stream.getTracks().forEach((track) => {
       peerConnection.addTrack(track, stream);
     });
   };
+
+  const handleIce = (event: RTCPeerConnectionIceEvent) => {
+    const { candidate } = event;
+    socket.emit("ice", candidate, $roomName);
+    console.log("sent ice candidated.");
+    // console.log(event);
+  };
+
+  const handleTrack = (event: RTCTrackEvent) => {
+    console.log("RTC Track Event : ", event);
+    console.log("RTC Track Event streams : ", event.streams);
+    console.log("current peer stream : ", stream);
+
+    if (event.streams) {
+      peerStreamVideoRef.srcObject = event.streams[0];
+      peerStreamVideoRef.volume = 0;
+    }
+  };
+
+  socket.on("ice", (ice: RTCIceCandidate | null) => {
+    ice ? peerConnection.addIceCandidate(ice) : null;
+    console.log("received candidated.");
+  });
 
   onMount(() => {
     // getMedia();
@@ -187,5 +218,8 @@
 
       <select bind:this={selectRef} />
     </div>
+
+    <!-- svelte-ignore a11y-media-has-caption -->
+    <video id="peerStream" bind:this={peerStreamVideoRef} autoplay playsinline width="400" height="250" />
   {/if}
 </div>

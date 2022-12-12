@@ -7,7 +7,6 @@ import { instrument } from "@socket.io/admin-ui";
 import router from "./routers/router";
 import { Server } from "socket.io";
 import { clog } from "./common";
-import { roomName } from "../../frontend/src/stores/store";
 
 const app = express();
 
@@ -45,6 +44,10 @@ io.on("connection", (socket) => {
 
   socket.on("answer", (answer: RTCSessionDescriptionInit, roomName: string) => {
     socket.to(roomName).emit("answer", answer);
+  });
+
+  socket.on("ice", (ice: RTCIceCandidate | null, roomName: string) => {
+    socket.to(roomName).emit("ice", ice);
   });
 });
 
