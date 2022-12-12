@@ -41,6 +41,22 @@
 
   const handleCameraChange = async () => {
     await getMedia(selectRef.value);
+
+    if (peerConnection) {
+      // console.log("peerConnection.getSenders()", peerConnection.getSenders());
+
+      const videoTrack = stream.getVideoTracks()[0];
+
+      // Sender는 current의 peer로 보내진 media stream track을 컨트롤하게 한다.
+      const videoSender: RTCRtpSender | undefined = peerConnection.getSenders().find((sender: RTCRtpSender) => {
+        // console.log("sender", sender);
+        return sender.track?.kind === "video";
+      });
+
+      videoSender?.replaceTrack(videoTrack);
+
+      console.log("videoSender", videoSender);
+    }
   };
 
   const getMedia = async (deviceId?: string) => {
