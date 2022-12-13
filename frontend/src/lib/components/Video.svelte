@@ -23,6 +23,8 @@
 
   let peerConnection: RTCPeerConnection;
 
+  let dataChannel: RTCDataChannel;
+
   const handleMuteClick = () => {
     stream.getAudioTracks().forEach((track) => {
       track.enabled = !track.enabled;
@@ -133,6 +135,13 @@
     console.log("Peer A");
     console.log("someone joined.");
 
+    // Peer A의 데이터채널 정의
+    dataChannel = peerConnection.createDataChannel("chat");
+    dataChannel.addEventListener("message", (event: MessageEvent<any>) => {
+      console.log("MessageEvent : ", event);
+    });
+    console.log("made data channel.");
+
     const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
 
     // Peer B로 offerf 전달
@@ -143,6 +152,16 @@
 
   // Peer B에서 실행
   socket.on("offer", async (offer: RTCSessionDescriptionInit) => {
+    
+    // Peer B의 데이터채널 정의
+    peerConnection.addEventListener("datachannel", (event: RTCDataChannelEvent) => {
+      // console.log("RTCDataChannelEvent : ", event);
+      dataChannel = event.channel;
+      dataChannel.addEventListener("message", (event: MessageEvent<any>) => {
+        console.log("Peer B MessageEvent : ", event);
+      });
+    });
+
     console.log("Peer B가 받은 offer : ", offer);
 
     /**
@@ -170,7 +189,20 @@
   });
 
   const makeConnection = () => {
-    peerConnection = new RTCPeerConnection();
+    peerConnection = new RTCPeerConnection({
+      // 전문적으로 하려면 직접 STUN 서버 구현 필요
+      // iceServers: [
+      //   {
+      //     urls: [
+      //       "stun:stun.l.google.com:19302",
+      //       "stun:stun1.l.google.com:19302",
+      //       "stun:stun2.l.google.com:19302",
+      //       "stun:stun3.l.google.com:19302",
+      //       "stun:stun4.l.google.com:19302",
+      //     ],
+      //   },
+      // ],
+    });
 
     peerConnection.addEventListener("icecandidate", handleIce);
 
